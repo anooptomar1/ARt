@@ -29,16 +29,14 @@ class ViewController: UIViewController, ARSCNViewDelegate {
         sceneView.autoenablesDefaultLighting = true
     }
     
-    override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
         
-        // Create a session configuration
-        let configuration = ARWorldTrackingConfiguration()
+        // Prevent the screen from being dimmed to avoid interrupting the AR experience.
+        UIApplication.shared.isIdleTimerDisabled = true
         
-        configuration.planeDetection = .vertical
-
-        // Run the view's session
-        sceneView.session.run(configuration)
+        // Start ARSession
+        resetTracking()
     }
     
     override func viewWillDisappear(_ animated: Bool) {
@@ -81,14 +79,18 @@ class ViewController: UIViewController, ARSCNViewDelegate {
     func renderer(_ renderer: SCNSceneRenderer, didUpdate node: SCNNode, for anchor: ARAnchor) {
         
         // convert ARAnchor to ARPlaneAnchor to get access to ARPlaneAnchor's extent and center vals
-        guard let anchor = anchor as? ARPlaneAnchor, let updatedNode = node.childNodes.first else { return }
+        guard let anchor = anchor as? ARPlaneAnchor,
+            let updatedNode = node.childNodes.first,
+            let plane = updatedNode.geometry as? SCNPlane
+            else { return }
         
-        // create plane geometry
-        updatedNode.geometry = SCNPlane(width: CGFloat(anchor.extent.x), height: CGFloat(anchor.extent.z))
-        
-        // transform node
-        updatedNode.position = SCNVector3(anchor.center.x, 0, anchor.center.z)
+        // Plane estimation may shift the center of a plane relative to its anchor's transform
+        updatedNode.simdPosition = float3(x: anchor.center.x, y: 0, z: anchor.center.z)
         updatedNode.geometry?.firstMaterial?.diffuse.contents = #imageLiteral(resourceName: "mondrianpainting")
+        
+        // Plane estimation may also extent planes or merge its extent into another
+        plane.width = CGFloat(anchor.extent.x)
+        plane.height = CGFloat(anchor.extent.z)
     }
     
     // MARK: - Plane Rendering Methods

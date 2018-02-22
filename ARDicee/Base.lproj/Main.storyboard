@@ -19,6 +19,7 @@
                     </arscnView>
                     <navigationItem key="navigationItem" id="MwA-s0-qAg">
                         <barButtonItem key="leftBarButtonItem" systemItem="refresh" id="gjk-cg-4Ub">
+                            <color key="tintColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                             <connections>
                                 <action selector="resetBtnTapped:" destination="BV1-FR-VrT" id="jvE-MU-WVN"/>
                             </connections>
